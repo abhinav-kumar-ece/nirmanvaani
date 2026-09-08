@@ -1,0 +1,227 @@
+[
+  {
+    "id": "BR_MUZ",
+    "name": "Muzaffarpur",
+    "state": "Bihar",
+    "population": 4801062,
+    "lat": 26.1209,
+    "lng": 85.3647,
+    "indices": {
+      "roads_unconnected_pct": 38.4,
+      "water_tap_deficit_pct": 42.1,
+      "phc_shortage_pct": 51.2,
+      "power_deficit_hours_daily": 4.5,
+      "school_infra_deficit_pct": 36.0,
+      "digital_connectivity_gap_pct": 47.8
+    },
+    "existing_schemes": [
+      "PMGSY Phase-III",
+      "Jal Jeevan Mission",
+      "PM-ABHIM"
+    ]
+  },
+  {
+    "id": "BR_DAR",
+    "name": "Darbhanga",
+    "state": "Bihar",
+    "population": 3937385,
+    "lat": 26.1542,
+    "lng": 85.8918,
+    "indices": {
+      "roads_unconnected_pct": 44.2,
+      "water_tap_deficit_pct": 49.0,
+      "phc_shortage_pct": 58.6,
+      "power_deficit_hours_daily": 5.2,
+      "school_infra_deficit_pct": 41.5,
+      "digital_connectivity_gap_pct": 52.3
+    },
+    "existing_schemes": [
+      "PMGSY Phase-III",
+      "Har Ghar Nal Ka Jal"
+    ]
+  },
+  {
+    "id": "BR_SAR",
+    "name": "Saran (Chhapra)",
+    "state": "Bihar",
+    "population": 3951862,
+    "lat": 25.7811,
+    "lng": 84.7543,
+    "indices": {
+      "roads_unconnected_pct": 33.1,
+      "water_tap_deficit_pct": 38.5,
+      "phc_shortage_pct": 46.0,
+      "power_deficit_hours_daily": 3.8,
+      "school_infra_deficit_pct": 39.2,
+      "digital_connectivity_gap_pct": 41.0
+    },
+    "existing_schemes": [
+      "PMGSY",
+      "Samagra Shiksha"
+    ]
+  },
+  {
+    "id": "WB_PUR",
+    "name": "Purulia",
+    "state": "West Bengal",
+    "population": 2930115,
+    "lat": 23.3321,
+    "lng": 86.3652,
+    "indices": {
+      "roads_unconnected_pct": 41.5,
+      "water_tap_deficit_pct": 62.4,
+      "phc_shortage_pct": 48.3,
+      "power_deficit_hours_daily": 3.2,
+      "school_infra_deficit_pct": 34.8,
+      "digital_connectivity_gap_pct": 56.1
+    },
+    "existing_schemes": [
+      "Jal Swapna",
+      "Pathashree Prakalpa",
+      "Jal Jeevan Mission"
+    ]
+  },
+  {
+    "id": "WB_BAN",
+    "name": "Bankura",
+    "state": "West Bengal",
+    "population": 3596674,
+    "lat": 23.2324,
+    "lng": 87.0715,
+    "indices": {
+      "roads_unconnected_pct": 36.8,
+      "water_tap_deficit_pct": 54.1,
+      "phc_shortage_pct": 42.7,
+      "power_deficit_hours_daily": 2.9,
+      "school_infra_deficit_pct": 31.0,
+      "digital_connectivity_gap_pct": 49.5
+    },
+    "existing_schemes": [
+      "Pathashree",
+      "Banglar Awas"
+    ]
+  },
+  {
+    "id": "UP_GOR",
+    "name": "Gorakhpur",
+    "state": "Uttar Pradesh",
+    "population": 4440895,
+    "lat": 26.7606,
+    "lng": 83.3732,
+    "indices": {
+      "roads_unconnected_pct": 29.3,
+      "water_tap_deficit_pct": 34.0,
+      "phc_shortage_pct": 44.5,
+      "power_deficit_hours_daily": 3.0,
+      "school_infra_deficit_pct": 33.1,
+      "digital_connectivity_gap_pct": 38.2
+    },
+    "existing_schemes": [
+      "PMGSY Phase-III",
+      "Jal Jeevan Mission",
+      "Ayushman Bharat"
+    ]
+  },
+  {
+    "id": "UP_VAR",
+    "name": "Varanasi",
+    "state": "Uttar Pradesh",
+    "population": 3676841,
+    "lat": 25.3176,
+    "lng": 82.9739,
+    "indices": {
+      "roads_unconnected_pct": 22.1,
+      "water_tap_deficit_pct": 26.5,
+      "phc_shortage_pct": 35.8,
+      "power_deficit_hours_daily": 2.1,
+      "school_infra_deficit_pct": 27.4,
+      "digital_connectivity_gap_pct": 31.0
+    },
+    "existing_schemes": [
+      "Smart Cities Mission",
+      "Jal Jeevan Mission"
+    ]
+  },
+  {
+    "id": "UP_MIR",
+    "name": "Mirzapur",
+    "state": "Uttar Pradesh",
+    "population": 2496970,
+    "lat": 25.1337,
+    "lng": 82.5644,
+    "indices": {
+      "roads_unconnected_pct": 48.7,
+      "water_tap_deficit_pct": 58.2,
+      "phc_shortage_pct": 53.0,
+      "power_deficit_hours_daily": 5.0,
+      "school_infra_deficit_pct": 45.2,
+      "digital_connectivity_gap_pct": 58.0
+    },
+    "existing_schemes": [
+      "PMGSY Tribal Sub-Plan",
+      "Jal Jeevan Mission Vindhya Plan"
+    ]
+  },
+  {
+    "id": "MH_GAD",
+    "name": "Gadchiroli",
+    "state": "Maharashtra",
+    "population": 1072942,
+    "lat": 20.1809,
+    "lng": 80.0039,
+    "indices": {
+      "roads_unconnected_pct": 52.6,
+      "water_tap_deficit_pct": 46.8,
+      "phc_shortage_pct": 62.1,
+      "power_deficit_hours_daily": 6.1,
+      "school_infra_deficit_pct": 49.3,
+      "digital_connectivity_gap_pct": 68.4
+    },
+    "existing_schemes": [
+      "Aspirational Districts Programme",
+      "PMGSY-LWE",
+      "BharatNet Phase-II"
+    ]
+  },
+  {
+    "id": "MH_NAN",
+    "name": "Nandurbar",
+    "state": "Maharashtra",
+    "population": 1648295,
+    "lat": 21.3739,
+    "lng": 74.2418,
+    "indices": {
+      "roads_unconnected_pct": 46.3,
+      "water_tap_deficit_pct": 51.5,
+      "phc_shortage_pct": 59.4,
+      "power_deficit_hours_daily": 4.8,
+      "school_infra_deficit_pct": 43.7,
+      "digital_connectivity_gap_pct": 61.2
+    },
+    "existing_schemes": [
+      "Aspirational Districts Programme",
+      "Tribal Health Mission"
+    ]
+  },
+  {
+    "id": "TN_MAD",
+    "name": "Madurai",
+    "state": "Tamil Nadu",
+    "population": 3038252,
+    "lat": 9.9252,
+    "lng": 78.1198,
+    "indices": {
+      "roads_unconnected_pct": 18.2,
+      "water_tap_deficit_pct": 28.3,
+      "phc_shortage_pct": 24.1,
+      "power_deficit_hours_daily": 1.5,
+      "school_infra_deficit_pct": 20.8,
+      "digital_connectivity_gap_pct": 24.5
+    },
+    "existing_schemes": [
+      "TN Road Sector Project",
+      "Jal Jeevan Mission",
+      "Smart City"
+    ]
+  }
+]

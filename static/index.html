@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NirmanVaani — Multilingual Citizen Feedback & Infrastructure Priority Platform</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            saffron: { 500: '#FF9933', 600: '#E68A2E' },
+            tricolorGreen: { 500: '#138808', 600: '#0F6B06' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Leaflet GIS Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- TOP HEADER / NAV -->
+  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <!-- Logo & Branding -->
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-emerald-600 flex items-center justify-center shadow-md">
+            <i data-lucide="network" class="w-7 h-7 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl font-black tracking-tight text-white">NirmanVaani</span>
+              <span class="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded border border-amber-400/30">निर्माणवाणी</span>
+              <span class="text-xs bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded border border-emerald-400/30">DPI Platform</span>
+            </div>
+            <p class="text-xs text-slate-300 hidden sm:block">Multilingual Citizen Feedback & Infrastructure Priority Platform • Google Cloud Hackathon 2026</p>
+          </div>
+        </div>
+
+        <!-- Mode Toggle & Quick Actions -->
+        <div class="flex items-center space-x-3">
+          <!-- Role Switcher -->
+          <div class="bg-slate-800 p-1 rounded-xl flex items-center border border-slate-700 shadow-inner">
+            <button id="tabCitizenBtn" onclick="switchView('citizen')" class="px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 bg-amber-500 text-slate-950 shadow">
+              <i data-lucide="message-square-plus" class="w-4 h-4"></i>
+              <span>Citizen Portal</span>
+            </button>
+            <button id="tabPolicymakerBtn" onclick="switchView('policymaker')" class="px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 text-slate-300 hover:text-white">
+              <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+              <span>Policymaker Command</span>
+            </button>
+          </div>
+
+          <!-- Pitch Deck & Settings Buttons -->
+          <button onclick="openPitchDeckModal()" class="hidden md:flex items-center space-x-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-amber-300 font-medium transition">
+            <i data-lucide="presentation" class="w-4 h-4"></i>
+            <span>Pitch Deck</span>
+          </button>
+          
+          <button onclick="openSettingsModal()" class="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 hover:text-white transition" title="Gemini API Key Settings">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- METRIC TICKER RIBBON -->
+  <div class="bg-slate-800 border-b border-slate-700 text-xs py-2 px-4 text-slate-300">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-4">
+        <span class="flex items-center space-x-1.5"><i data-lucide="radio" class="w-3.5 h-3.5 text-emerald-400 animate-pulse"></i><strong class="text-white">Live Pipeline:</strong> Multi-turn Gemini Structuring + Official data.gov.in Grounding</span>
+        <span class="hidden lg:inline text-slate-500">|</span>
+        <span class="hidden lg:inline">Supported Intake: <span class="text-amber-300 font-medium">Hindi, Bengali, Tamil, Bhojpuri, Marathi, English</span></span>
+      </div>
+      <div class="flex items-center space-x-6 text-slate-300">
+        <div>Total Reports: <span id="tickerReportsCount" class="font-bold text-white">--</span></div>
+        <div>Monitored Districts: <span id="tickerDistrictsCount" class="font-bold text-emerald-400">11</span></div>
+        <div>Priority Algorithm: <span class="text-amber-400 font-mono">Score = w1·D + w2·G + w3·P</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ============================================== -->
+    <!-- CITIZEN VIEW: MULTILINGUAL INTAKE & TRACKER -->
+    <!-- ============================================== -->
+    <div id="citizenView" class="space-y-8">
+      
+      <!-- Banner Introduction -->
+      <div class="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10 max-w-3xl">
+          <span class="inline-flex items-center space-x-1 text-xs uppercase tracking-wider bg-white/20 font-bold px-2.5 py-1 rounded-full mb-3">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>Citizen Voice Interface</span>
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-black mb-2">अपनी भाषा में बुनियादी ढांचे की समस्या बताएं</h1>
+          <p class="text-sm sm:text-base text-amber-50">Speak or type your local infrastructure grievance in Hindi, Bengali, Tamil, Marathi, Bhojpuri, or English. Gemini AI translates, extracts location, scores urgency, and matches it with national public schemes.</p>
+        </div>
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-white pointer-events-none">
+          <i data-lucide="mic" class="w-64 h-64"></i>
+        </div>
+      </div>
+
+      <!-- Quick Regional Presets -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
+            <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
+            <span>Quick 1-Click Regional Presets (Test Multilingual Intake)</span>
+          </h2>
+          <span class="text-xs text-slate-400">Click to instantly populate and test</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+          <button onclick="loadPreset(0)" class="text-left p-3 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/70 hover:border-amber-400 transition group">
+            <span class="text-xs font-bold text-amber-800 block">Roads • Bihar (Hindi)</span>
+            <span class="text-xs text-slate-600 line-clamp-2 mt-1">कांटी ब्लॉक SH-74 पुलिया टूट गई, एम्बुलेंस नहीं आ रही...</span>
+          </button>
+          <button onclick="loadPreset(1)" class="text-left p-3 rounded-xl border border-sky-200 bg-sky-50/50 hover:bg-sky-100/70 hover:border-sky-400 transition group">
+            <span class="text-xs font-bold text-sky-800 block">Water • W.Bengal (Bengali)</span>
+            <span class="text-xs text-slate-600 line-clamp-2 mt-1">বলরামপুর ব্লকে নলবাহিত পানীয় জল প্রকল্প বন্ধ...</span>
+          </button>
+          <button onclick="loadPreset(2)" class="text-left p-3 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/70 hover:border-rose-400 transition group">
+            <span class="text-xs font-bold text-rose-800 block">Health • TN (Tamil)</span>
+            <span class="text-xs text-slate-600 line-clamp-2 mt-1">மதுரை வாடிப்பட்டி ஆரம்ப சுகாதார நிலையத்தில் மின்சாரம் இல்லை...</span>
+          </button>
+          <button onclick="loadPreset(3)" class="text-left p-3 rounded-xl border border-purple-200 bg-purple-50/50 hover:bg-purple-100/70 hover:border-purple-400 transition group">
+            <span class="text-xs font-bold text-purple-800 block">School • Bihar (Bhojpuri)</span>
+            <span class="text-xs text-slate-600 line-clamp-2 mt-1">सारण के प्राथमिक विद्यालय के छत से प्लास्टर गिर रहा बा...</span>
+          </button>
+          <button onclick="loadPreset(4)" class="text-left p-3 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/70 hover:border-emerald-400 transition group">
+            <span class="text-xs font-bold text-emerald-800 block">Digital • MH (Marathi)</span>
+            <span class="text-xs text-slate-600 line-clamp-2 mt-1">गड़चिरोलीच्या भामरागड तालुक्यात भारतनेट इंटरनेट ठप्प...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Input Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Form Area -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2">
+              <i data-lucide="edit-3" class="w-5 h-5 text-amber-500"></i>
+              <span>Submit Civic Infrastructure Grievance</span>
+            </h3>
+            
+            <!-- Voice Intake Button -->
+            <button id="voiceRecordBtn" onclick="toggleVoiceRecording()" class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 transition shadow-sm bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100">
+              <i id="micIcon" data-lucide="mic" class="w-4 h-4"></i>
+              <span id="micStatusText">Speak Complaint (Voice Input)</span>
+            </button>
+          </div>
+
+          <!-- Recording Pulse Banner -->
+          <div id="recordingWave" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-xs text-rose-700 font-semibold">
+              <span class="w-2.5 h-2.5 bg-rose-600 rounded-full animate-ping"></span>
+              <span>Listening in real-time... Speak in any language</span>
+            </div>
+            <span class="text-xs text-rose-500 font-mono">Web Speech API</span>
+          </div>
+
+          <!-- Textarea -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Complaint Details (Voice or Typed)</label>
+            <textarea id="complaintInput" rows="5" placeholder="उदा: हमारे गांव में नल जल योजना 3 महीने से बंद है, हैंडपंप भी खराब है... OR describe your issue in any language" class="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-800 text-sm placeholder-slate-400 outline-none transition"></textarea>
+          </div>
+
+          <!-- District and Options -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Target District (Optional / Auto-extract)</label>
+              <select id="inputDistrictSelect" class="w-full p-2.5 rounded-xl border border-slate-300 text-sm bg-white text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
+                <option value="">AI Auto-Detect from Text</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Language Mode</label>
+              <select id="inputLanguageSelect" class="w-full p-2.5 rounded-xl border border-slate-300 text-sm bg-white text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
+                <option value="Auto-detect">AI Auto-Detect (Hindi, Bengali, Tamil, etc.)</option>
+                <option value="Hindi">Hindi (हिन्दी)</option>
+                <option value="Bengali">Bengali (বাংলা)</option>
+                <option value="Tamil">Tamil (தமிழ்)</option>
+                <option value="Bhojpuri">Bhojpuri (भोजपुरी)</option>
+                <option value="Marathi">Marathi (मराठी)</option>
+                <option value="English">English</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center space-x-3 pt-2">
+            <button id="submitBtn" onclick="submitComplaint()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 px-5 rounded-xl transition flex items-center justify-center space-x-2 shadow-md">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span>Analyze & Submit to Platform</span>
+            </button>
+            <button onclick="previewGeminiStructuring()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition">
+              Preview AI Structuring Only
+            </button>
+          </div>
+        </div>
+
+        <!-- Live AI Structuring Pipeline Card -->
+        <div class="lg:col-span-5 bg-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col justify-between border border-slate-800">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <span class="text-xs font-bold text-amber-400 tracking-wider uppercase flex items-center space-x-1.5">
+                <i data-lucide="cpu" class="w-4 h-4"></i>
+                <span>Gemini AI Structuring Pipeline</span>
+              </span>
+              <span id="aiStatusBadge" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full border border-slate-700">Ready</span>
+            </div>
+
+            <!-- Structured breakdown fields -->
+            <div id="aiOutputPlaceholder" class="py-12 text-center text-slate-500 text-xs">
+              <i data-lucide="sparkles" class="w-8 h-8 mx-auto mb-2 text-slate-600 animate-pulse"></i>
+              Submit or preview a complaint to watch Gemini AI detect language, translate, classify sector, extract geo-location, and score urgency.
+            </div>
+
+            <div id="aiOutputCard" class="hidden mt-4 space-y-3.5 text-xs">
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <div class="text-slate-400 mb-1 flex items-center justify-between">
+                  <span>Detected Language:</span>
+                  <span id="aiLangBadge" class="font-bold text-amber-300">--</span>
+                </div>
+                <div class="text-slate-400 mb-1">English Translation:</div>
+                <p id="aiTranslation" class="text-slate-200 font-medium leading-relaxed italic">--</p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                  <span class="text-slate-400 block mb-1">Sector Classified:</span>
+                  <span id="aiSectorBadge" class="inline-flex items-center px-2 py-0.5 rounded font-bold uppercase text-xs bg-amber-500/20 text-amber-300 border border-amber-400/30">--</span>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                  <span class="text-slate-400 block mb-1">Urgency Score:</span>
+                  <span id="aiUrgencyBadge" class="font-bold text-rose-400 text-sm">--</span>
+                </div>
+              </div>
+
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <span class="text-slate-400 block mb-1">Extracted Geo-Location & Entities:</span>
+                <p id="aiLocationText" class="text-emerald-300 font-medium">--</p>
+              </div>
+
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <span class="text-slate-400 block mb-1">Suggested Policy Action:</span>
+                <p id="aiActionText" class="text-amber-200 font-medium">--</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="submissionSuccessBanner" class="hidden mt-4 p-3 bg-emerald-950/80 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span>Generated Ticket ID: <strong id="generatedTicketId" class="font-mono text-white text-sm">--</strong></span>
+            </div>
+            <p class="text-slate-400 mt-1">Synced to district aggregator & policymaker dashboard.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Public Transparency & Issue Tracking -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2">
+              <i data-lucide="search" class="w-5 h-5 text-amber-500"></i>
+              <span>Public Transparency Layer: Track Community Issues</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Citizens can track status of reported issues or endorse local grievances without filing duplicate reports.</p>
+          </div>
+
+          <!-- Search / Filter -->
+          <div class="flex items-center space-x-3">
+            <input type="text" id="trackerSearchInput" oninput="filterCitizenReports()" placeholder="Search by Ticket ID (NV-2026-...) or district..." class="p-2.5 rounded-xl border border-slate-300 text-xs w-64 focus:ring-2 focus:ring-amber-500 outline-none">
+            <select id="trackerSectorSelect" onchange="filterCitizenReports()" class="p-2.5 rounded-xl border border-slate-300 text-xs bg-white text-slate-700 outline-none">
+              <option value="all">All Sectors</option>
+              <option value="roads">Roads</option>
+              <option value="water">Water</option>
+              <option value="health">Health</option>
+              <option value="power">Power</option>
+              <option value="education">Education</option>
+              <option value="digital_access">Digital Access</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Recent Submissions List -->
+        <div id="citizenReportsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- POLICYMAKER VIEW: DASHBOARD, GIS MAP, SCORING -->
+    <!-- ============================================== -->
+    <div id="policymakerView" class="hidden space-y-8">
+      
+      <!-- Policymaker Header & Explainable Sliders -->
+      <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800 space-y-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-400/30">Ministry of Rural Development & DPI</span>
+              <span class="text-xs text-slate-400">Decision Support System</span>
+            </div>
+            <h2 class="text-2xl font-black mt-1">Infrastructure Priority Scoring Engine</h2>
+            <p class="text-xs text-slate-400">Explainable multi-criteria ranking combining citizen voice volume with official Census & PMGSY infrastructure deficit data.</p>
+          </div>
+
+          <!-- Formula Pill -->
+          <div class="bg-slate-800/90 border border-slate-700 p-3 rounded-xl font-mono text-xs">
+            <div class="text-slate-400 text-[10px] uppercase tracking-wider mb-1">Defensible Scoring Algorithm:</div>
+            <div class="text-amber-400 font-bold">Score = (w1 × Demand) + (w2 × Infra Gap) + (w3 × Population Reach)</div>
+          </div>
+        </div>
+
+        <!-- Interactive Sliders -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          <!-- Slider w1: Demand -->
+          <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-200 flex items-center space-x-1.5">
+                <i data-lucide="users" class="w-4 h-4 text-amber-400"></i>
+                <span>Demand Signal (w1)</span>
+              </span>
+              <span id="w1Display" class="text-xs font-mono font-bold text-amber-400 bg-slate-900 px-2 py-0.5 rounded">35%</span>
+            </div>
+            <input type="range" id="sliderW1" min="5" max="80" value="35" oninput="updateWeights()" class="w-full accent-amber-500 cursor-pointer">
+            <p class="text-[11px] text-slate-400 leading-tight">Volume & urgency score of citizen feedback in that district/sector.</p>
+          </div>
+
+          <!-- Slider w2: Infra Gap -->
+          <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-200 flex items-center space-x-1.5">
+                <i data-lucide="activity" class="w-4 h-4 text-sky-400"></i>
+                <span>Infrastructure Deficit (w2)</span>
+              </span>
+              <span id="w2Display" class="text-xs font-mono font-bold text-sky-400 bg-slate-900 px-2 py-0.5 rounded">40%</span>
+            </div>
+            <input type="range" id="sliderW2" min="5" max="80" value="40" oninput="updateWeights()" class="w-full accent-sky-500 cursor-pointer">
+            <p class="text-[11px] text-slate-400 leading-tight">Official baseline deficit from data.gov.in (unconnected roads, tap water gap).</p>
+          </div>
+
+          <!-- Slider w3: Population -->
+          <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-200 flex items-center space-x-1.5">
+                <i data-lucide="globe" class="w-4 h-4 text-emerald-400"></i>
+                <span>Population Reach (w3)</span>
+              </span>
+              <span id="w3Display" class="text-xs font-mono font-bold text-emerald-400 bg-slate-900 px-2 py-0.5 rounded">25%</span>
+            </div>
+            <input type="range" id="sliderW3" min="5" max="80" value="25" oninput="updateWeights()" class="w-full accent-emerald-500 cursor-pointer">
+            <p class="text-[11px] text-slate-400 leading-tight">Census demographic reach so noisy low-impact areas don't drown out millions.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAP & ANALYTICS DUAL VIEW -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- GIS Hotspot Map -->
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="map-pin" class="w-5 h-5 text-amber-500"></i>
+              <h3 class="font-bold text-slate-900 text-base">National Demand Hotspot GIS Map</h3>
+            </div>
+            <div class="flex items-center space-x-3 text-xs">
+              <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span>Roads</span></span>
+              <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span><span>Water</span></span>
+              <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span>Health</span></span>
+              <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span>Power</span></span>
+              <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span><span>Education</span></span>
+              <span class="inline-flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Digital</span></span>
+            </div>
+          </div>
+          
+          <div id="hotspotMap" class="w-full h-96 rounded-xl border border-slate-200 z-0"></div>
+          <p class="text-[11px] text-slate-400">Click markers to view district breakdown and filter ranked projects below.</p>
+        </div>
+
+        <!-- Quick Summary & Charts -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center space-x-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-amber-500"></i>
+              <span>Sector Grievance Breakdown</span>
+            </h3>
+            <div class="h-44 relative">
+              <canvas id="sectorChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center space-x-2">
+              <i data-lucide="languages" class="w-4 h-4 text-emerald-500"></i>
+              <span>Linguistic Diversity Intake</span>
+            </h3>
+            <div class="h-40 relative">
+              <canvas id="languageChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RANKED PROJECT RECOMMENDATIONS -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2">
+              <i data-lucide="award" class="w-5 h-5 text-amber-500"></i>
+              <span>Ranked Infrastructure Recommendations</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Top-priority infrastructure interventions computed dynamically based on current weights.</p>
+          </div>
+
+          <!-- Filters -->
+          <div class="flex flex-wrap items-center gap-3">
+            <select id="filterState" onchange="fetchRankedProjects()" class="p-2 rounded-xl border border-slate-300 text-xs bg-white text-slate-700 outline-none">
+              <option value="all">All States</option>
+              <option value="Bihar">Bihar</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="West Bengal">West Bengal</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+            </select>
+
+            <select id="filterSector" onchange="fetchRankedProjects()" class="p-2 rounded-xl border border-slate-300 text-xs bg-white text-slate-700 outline-none">
+              <option value="all">All Sectors</option>
+              <option value="roads">Roads & Bridges</option>
+              <option value="water">Water Supply</option>
+              <option value="health">Healthcare PHC</option>
+              <option value="power">Power Feeder</option>
+              <option value="education">School Infra</option>
+              <option value="digital_access">Digital Access</option>
+            </select>
+
+            <select id="filterStatus" onchange="fetchRankedProjects()" class="p-2 rounded-xl border border-slate-300 text-xs bg-white text-slate-700 outline-none">
+              <option value="all">All Statuses</option>
+              <option value="PENDING_REVIEW">Pending Review</option>
+              <option value="BUDGET_APPROVED">Budget Approved</option>
+            </select>
+
+            <button onclick="exportProjectsCSV()" class="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 flex items-center space-x-1.5 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Project Cards Grid -->
+        <div id="projectsContainer" class="space-y-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- MODALS -->
+  <!-- ============================================== -->
+
+  <!-- EVIDENCE DOSSIER MODAL -->
+  <div id="evidenceModal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+        <div>
+          <span class="text-xs text-amber-400 font-bold uppercase tracking-wider">Policymaker Evidence Dossier</span>
+          <h3 id="modalProjectTitle" class="text-lg font-bold mt-0.5">Project Title</h3>
+        </div>
+        <button onclick="closeEvidenceModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+        <!-- Score Math Breakdown -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+          <div class="font-bold text-slate-900 text-sm flex items-center justify-between">
+            <span>Score Formulation Breakdown:</span>
+            <span id="modalTotalScore" class="text-base text-amber-600 font-black">Score: -- / 100</span>
+          </div>
+          <div class="grid grid-cols-3 gap-3 pt-1 text-center">
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[10px]">Demand Component</span>
+              <span id="modalDemandComponent" class="font-bold text-slate-800 text-sm">--</span>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[10px]">Infra Gap Component</span>
+              <span id="modalGapComponent" class="font-bold text-slate-800 text-sm">--</span>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[10px]">Population Factor</span>
+              <span id="modalPopComponent" class="font-bold text-slate-800 text-sm">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Official Baseline Data -->
+        <div class="space-y-1.5">
+          <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Official data.gov.in Grounding:</h4>
+          <div id="modalBaselineMetrics" class="bg-sky-50/70 p-3.5 rounded-xl border border-sky-200 space-y-1">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Citizen Verbatim Reports -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Citizen Voice & Verbatim Submissions:</h4>
+          <div id="modalReportsList" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="bg-slate-50 p-4 border-t border-slate-200 flex items-center justify-between">
+        <div class="text-xs text-slate-500">
+          Estimated Budget: <strong id="modalBudget" class="text-slate-800">--</strong> • Scheme: <strong id="modalScheme" class="text-slate-800">--</strong>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button onclick="closeEvidenceModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-100 transition">Close</button>
+          <button id="modalApproveBtn" onclick="approveCurrentProject()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Approve for DPI Budget Allocation</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PITCH DECK MODAL (10 SLIDES) -->
+  <div id="pitchDeckModal" class="hidden fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+          <span class="text-xs font-bold bg-amber-500 text-slate-950 px-2 py-0.5 rounded">Google Cloud Hackathon 2026</span>
+          <h3 class="text-lg font-bold">NirmanVaani — Official Pitch Deck</h3>
+        </div>
+        <button onclick="closePitchDeckModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 text-sm text-slate-700">
+        <!-- Slide 1 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-slate-50 space-y-2">
+          <span class="text-xs font-bold text-amber-600 uppercase">Slide 1 • Title & Hook</span>
+          <h4 class="text-lg font-black text-slate-900">NirmanVaani (निर्माणवाणी): The Multilingual Citizen-to-Policy Bridge</h4>
+          <p class="text-slate-600">Track: Digital Public Infrastructure | Builder: Abhinav Kumar (solo). Transforming fragmented citizen complaints in 22 Indian languages into explainable, ranked infrastructure allocations for ministries.</p>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-rose-600 uppercase">Slide 2 • The Problem</span>
+          <h4 class="text-base font-bold text-slate-900">The $1.4 Trillion Civic Gap in Infrastructure Spending</h4>
+          <p class="text-slate-600">Citizen feedback sits in siloed paper registers, unmonitored helplines, and social media. Budgets get allocated where political noise is loudest rather than where infrastructure deficits and population vulnerability are highest.</p>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-sky-600 uppercase">Slide 3 • The Solution</span>
+          <h4 class="text-base font-bold text-slate-900">Voice-First Intake + Gemini AI Structuring + Explainable Ranking</h4>
+          <p class="text-slate-600">Citizens simply talk into their phone in Bhojpuri, Bengali, Hindi, or Tamil. Gemini translates, categorizes the sector (Roads, Water, Health), extracts geo-entities, and feeds an open mathematical priority scoring engine.</p>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-emerald-600 uppercase">Slide 4 • Explainable Priority Algorithm (Not a Black Box)</span>
+          <h4 class="text-base font-bold text-slate-900">Defensible Formula: Score = w1·Demand + w2·InfraGap + w3·PopReach</h4>
+          <p class="text-slate-600">Policymakers control policy weight sliders dynamically. Real Census data and PMGSY road connectivity metrics prevent noise from overpowering underserved rural communities.</p>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-indigo-600 uppercase">Slide 5 • Technical Architecture</span>
+          <h4 class="text-base font-bold text-slate-900">Built on Managed Google Cloud & Web Standards</h4>
+          <p class="text-slate-600">Vite + React / TypeScript frontend, Cloud Functions / FastAPI, Firestore citizen store, BigQuery analytics, and Gemini API structuring pipeline.</p>
+        </div>
+
+        <!-- Slide 6 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-amber-600 uppercase">Slide 6 • Grounding in Reality</span>
+          <h4 class="text-base font-bold text-slate-900">Real Datasets from data.gov.in</h4>
+          <p class="text-slate-600">Census population, PMGSY unconnected road rates, Jal Jeevan tap deficits, and Rural Health Mission PHC vacancy data for Bihar, Uttar Pradesh, West Bengal, and Maharashtra.</p>
+        </div>
+
+        <!-- Slide 7 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-teal-600 uppercase">Slide 7 • Public Transparency & Trust</span>
+          <h4 class="text-base font-bold text-slate-900">Citizen Tracking & Community Endorsement</h4>
+          <p class="text-slate-600">Citizens can track their ticket ID lifecycle and upvote neighbor complaints ("Me Too"), preventing spam while building genuine civic trust in public governance.</p>
+        </div>
+
+        <!-- Slide 8 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-purple-600 uppercase">Slide 8 • Scalability & DPI Roadmap</span>
+          <h4 class="text-base font-bold text-slate-900">Expanding Across All 766 Districts of India</h4>
+          <p class="text-slate-600">Deployable as a standard Digital Public Good (DPG) with Open API integration into state CM Helplines and Ministry of Panchayati Raj systems.</p>
+        </div>
+
+        <!-- Slide 9 -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-2">
+          <span class="text-xs font-bold text-rose-600 uppercase">Slide 9 • Judging Criteria Alignment</span>
+          <h4 class="text-base font-bold text-slate-900">100% Alignment with Google Cloud Hackathon Rubric</h4>
+          <p class="text-slate-600">Problem-Solution Fit (20%), AI/Technical Execution (25%), Depth & Reach (20%), Impact Potential (15%), Deployability & Scalability (20%).</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end">
+        <button onclick="closePitchDeckModal()" class="px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">Close Pitch Deck</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GEMINI SETTINGS MODAL -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i data-lucide="key" class="w-4 h-4 text-amber-500"></i>
+          <span>Google Gemini API Configuration</span>
+        </h3>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500">NirmanVaani includes an intelligent built-in multilingual structuring engine that works immediately offline. If you have a Google AI Studio / Gemini API key, you can enter it here to test live Gemini 1.5/2.0 API calls.</p>
+
+      <div class="space-y-1">
+        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Gemini API Key (Optional)</label>
+        <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full p-3 rounded-xl border border-slate-300 text-sm font-mono outline-none focus:ring-2 focus:ring-amber-500">
+      </div>
+
+      <div class="flex items-center justify-end space-x-3 pt-2">
+        <button onclick="closeSettingsModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-100">Cancel</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POLICYMAKER AUTH MODAL -->
+  <div id="policymakerAuthModal" class="hidden fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
+      <div class="flex items-center space-x-3 pb-3 border-b border-slate-100">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Ministry / Admin Access</h3>
+          <p class="text-[11px] text-slate-500">Enter policymaker authorization key</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600">The policymaker command center and budget allocation actions are protected by role-based authentication.</p>
+
+      <div class="space-y-1">
+        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Passcode / Secret Key</label>
+        <input type="password" id="policymakerPasscodeInput" placeholder="Enter passcode" class="w-full p-2.5 rounded-xl border border-slate-300 text-sm font-mono outline-none focus:ring-2 focus:ring-amber-500">
+      </div>
+
+      <div id="authErrorMsg" class="hidden text-xs text-rose-600 font-semibold">
+        Invalid credentials. Please verify your passcode.
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button onclick="closePolicymakerAuthModal()" class="px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-100">Cancel</button>
+        <button onclick="submitPolicymakerAuth()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow">Authenticate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="font-black text-white">NirmanVaani</span>
+        <span>• Digital Public Infrastructure for India</span>
+      </div>
+      <p>Built for Google Cloud "Build with AI: Code for Communities" Hackathon (Digital Public Infrastructure Track)</p>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

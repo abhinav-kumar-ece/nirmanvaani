@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isPolicymaker() {
+      return isAuthenticated() && 
+        (request.auth.token.role == 'policymaker' || request.auth.token.admin == true);
+    }
+
+    // Public Districts & Baseline Indices (Read-only for all, write for admin)
+    match /districts/{districtId} {
+      allow read: if true;
+      allow write: if isPolicymaker();
+    }
+
+    // Citizen Reports collection
+    match /reports/{reportId} {
+      // Anyone can read public reports
+      allow read: if true;
+
+      // Rate-limited / validated creation
+      allow create: if request.resource.data.text is string
+                    && request.resource.data.text.size() >= 5
+                    && request.resource.data.text.size() <= 1500
+                    && request.resource.data.urgency_score is int
+                    && request.resource.data.urgency_score >= 1
+                    && request.resource.data.urgency_score <= 5
+                    && request.resource.data.status in ['SUBMITTED', 'VERIFIED'];
+
+      // Community endorsements: allow incrementing endorsements_count only
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['endorsements_count'])
+                    && request.resource.data.endorsements_count == resource.data.endorsements_count + 1;
+
+      // Status updates (e.g. BUDGET_ALLOCATED) restricted strictly to policymakers
+      allow update: if isPolicymaker() 
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'budget_allocation_ref']);
+
+      // No client-side deletion
+      allow delete: if isPolicymaker();
+    }
+
+    // Government Approved Projects & DPI Allocations
+    match /approved_projects/{projectId} {
+      allow read: if true;
+      allow write: if isPolicymaker();
+    }
+  }
+}

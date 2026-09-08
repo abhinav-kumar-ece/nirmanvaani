@@ -1,0 +1,23 @@
+# Secrets & Environment
+.env
+.env.*
+!.env.example
+PASSCODE_PRIVATE_NOTE.txt
+
+# Git metadata
+.git
+.gitignore
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local runtime data (runtime submissions excluded; seed sample_reports.json is kept)
+data/reports.json
+data/*.tmp*
+
+# Test scripts & dev docs
+test_*.py
+mingit/
