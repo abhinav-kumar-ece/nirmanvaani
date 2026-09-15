@@ -158,6 +158,7 @@ def check_auth_rate_limit_with_backoff(client_ip: str):
     AUTH_BACKOFF_STORE[client_ip] = record
 
 # Firebase Admin SDK Initialization
+FIREBASE_INIT_STATUS: Dict[str, Any] = {"initialized": False, "error": None}
 try:
     import firebase_admin
     from firebase_admin import auth as fb_auth
@@ -165,10 +166,58 @@ try:
         firebase_project_id = os.environ.get("FIREBASE_PROJECT_ID")
         if firebase_project_id:
             firebase_admin.initialize_app(options={"projectId": firebase_project_id})
+            FIREBASE_INIT_STATUS["initialized"] = True
         elif os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
             firebase_admin.initialize_app()
+            FIREBASE_INIT_STATUS["initialized"] = True
+        else:
+            FIREBASE_INIT_STATUS["initialized"] = True
+    else:
+        FIREBASE_INIT_STATUS["initialized"] = True
 except Exception as e:
-    pass
+    FIREBASE_INIT_STATUS["error"] = str(e)
+    FIREBASE_INIT_STATUS["initialized"] = False
+
+# Module-Level Application Readiness State for Render Health Checks
+APP_READY: bool = False
+STARTUP_STATE: Dict[str, Any] = {
+    "gemini_configured": False,
+    "firebase_initialized": False,
+    "districts_loaded": False,
+    "reports_loaded": False,
+    "error": None
+}
+
+@app.on_event("startup")
+def startup_readiness_check():
+    """Validates all critical startup dependencies before serving traffic."""
+    global APP_READY, STARTUP_STATE
+    try:
+        # 1. Validate Gemini API Key configuration
+        gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+        STARTUP_STATE["gemini_configured"] = bool(gemini_key and len(gemini_key) > 5)
+
+        # 2. Validate Firebase Admin SDK status
+        STARTUP_STATE["firebase_initialized"] = FIREBASE_INIT_STATUS["initialized"]
+
+        # 3. Validate in-memory data stores from disk
+        STARTUP_STATE["districts_loaded"] = bool(isinstance(DISTRICTS, list) and len(DISTRICTS) > 0)
+        STARTUP_STATE["reports_loaded"] = bool(isinstance(REPORTS, list) and len(REPORTS) > 0)
+
+        # All critical startup dependencies must pass
+        if STARTUP_STATE["gemini_configured"] and STARTUP_STATE["districts_loaded"] and STARTUP_STATE["reports_loaded"]:
+            APP_READY = True
+            print("[HEALTH STARTUP] All dependencies initialized successfully. APP_READY = True")
+        else:
+            APP_READY = False
+            missing = [k for k, v in STARTUP_STATE.items() if not v and k != "error"]
+            STARTUP_STATE["error"] = f"Missing startup dependencies: {', '.join(missing)}"
+            print(f"[HEALTH STARTUP WARNING] APP_READY = False. Reason: {STARTUP_STATE['error']}")
+    except Exception as exc:
+        APP_READY = False
+        STARTUP_STATE["error"] = str(exc)
+        print(f"[HEALTH STARTUP ERROR] {exc}")
+
 
 # Server-Side Firebase Auth + Role Check Dependency
 def verify_policymaker_auth(
@@ -393,6 +442,39 @@ Output ONLY valid JSON with no markdown formatting, matching this exact schema:
         "key_entities": [matched_district["name"], sector.upper(), "Public Infrastructure"],
         "suggested_action": f"Expedited priority remediation under national/state {matched_district['existing_schemes'][0]} framework."
     }
+
+# Health Check / Readiness Probe for Render
+@app.get("/health", tags=["Health"])
+def get_health():
+    """
+    Lightweight health and readiness check endpoint for Render.
+    Returns HTTP 200 OK only when all startup dependencies (Gemini config,
+    in-memory data stores, Firebase SDK) have finished initializing.
+    Returns HTTP 503 Service Unavailable if unready or initialization failed.
+    Exempt from rate limiting and authentication.
+    """
+    if not APP_READY:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "unavailable",
+                "ready": False,
+                "details": STARTUP_STATE
+            }
+        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "status": "ok",
+            "ready": True,
+            "dependencies": {
+                "gemini_configured": STARTUP_STATE["gemini_configured"],
+                "firebase_initialized": STARTUP_STATE["firebase_initialized"],
+                "districts_loaded": STARTUP_STATE["districts_loaded"],
+                "reports_loaded": STARTUP_STATE["reports_loaded"]
+            }
+        }
+    )
 
 # Endpoints
 @app.get("/api/districts")

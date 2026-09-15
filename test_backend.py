@@ -53,4 +53,12 @@ status, body = test_endpoint('http://127.0.0.1:8000/api/analytics')
 analytics = json.loads(body)
 print(f'6. GET /api/analytics -> Status: {status}, Total Monitored Pop: {analytics.get("total_population_monitored")}')
 
+# 7. Test /health
+status, body = test_endpoint('http://127.0.0.1:8000/health')
+health_data = json.loads(body)
+print(f'7. GET /health -> Status: {status}, Health: {health_data.get("status")}, Ready: {health_data.get("ready")}')
+if status != 200 or health_data.get("status") != "ok":
+    raise RuntimeError(f"Health check failed: Status {status}, Body: {body}")
+
 print('\nALL BACKEND API TESTS PASSED!')
+
