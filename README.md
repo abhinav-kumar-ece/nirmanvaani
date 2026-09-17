@@ -11,7 +11,9 @@
 ## 🔑 Demo Access (For Evaluators & Judges)
 
 To evaluate the **Policymaker Command Center** and test administrative features (e.g. 1-Click DPI Budget Allocation):
-* **Local Web URL**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+Live Deployed URL: https://nirmanvaani.onrender.com (Note: if inactive, allow 30-60 seconds for the first request to load)
+
+Local Web URL: http://127.0.0.1:8000 (for running the project yourself)
 * **Policymaker Passcode**: Configured via `POLICYMAKER_SECRET_KEY` in `.env` (refer to Hack2Skill submission notes; defaults to `demo-passcode` if unset).
 * *(See [Section 7: Known Limitations](#7-known-limitations-demo-vs-production) for evaluation rationale).*
 
